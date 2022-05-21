@@ -683,5 +683,10 @@ blueprint!{
             info!("[Swap For Exact]: Amount gievn out: {}", output_tokens.amount());
             return (output_tokens, tokens);
         }
+
+        /// Returns the component address of the liquidity pool.
+        pub fn component_address(&self) -> ComponentAddress {
+            Runtime::actor().component_address().unwrap()
+        }
     }
 }

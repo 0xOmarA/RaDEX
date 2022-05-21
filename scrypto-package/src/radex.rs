@@ -344,5 +344,13 @@ blueprint!{
             );
             return self.liquidity_pools[&sorted_addresses].swap_tokens_for_exact_tokens(tokens, output_amount);
         }
+
+        /// Returns a HashMap of all of the liquidity pools in RaDEX.
+        pub fn get_liquidity_pools(&self) -> HashMap<(ResourceAddress, ResourceAddress), ComponentAddress> {
+            return self.liquidity_pools
+                .iter()
+                .map(|(k, v)| (k.clone(), v.component_address()))
+                .collect();
+        }
     }
 }
