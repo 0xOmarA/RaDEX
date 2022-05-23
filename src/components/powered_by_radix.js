@@ -1,4 +1,4 @@
-import radixLogo from '../assets/radix-logo.svg';
+import radixLogo from '../assets/images/radix-logo.svg';
 
 const PoweredByRadix = () => {
   return <div 
@@ -7,7 +7,7 @@ const PoweredByRadix = () => {
     onClick={handleOnClick}
   >
     <p className='my-auto'>Powered By</p>
-    <img className='mx-2' src={radixLogo} style={{width: "100px"}}/>
+    <img src={radixLogo} style={{width: "90px", marginLeft: 10}}/>
   </div>
 }
 

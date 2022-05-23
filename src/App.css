@@ -45,11 +45,12 @@
   min-height: 100vh;
   color: #fff;
   /* background: linear-gradient(-45deg, #EE7752, #E73C7E, #23A6D5, #23D5AB); */
-  background: linear-gradient(-45deg, #434343, #0F2027, #203A43, #2C5364);
+  background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364);
+  /* background-size: 100% 100%; */
   background-size: 400% 400%;
-  -webkit-animation: Gradient 20s ease infinite;
-  -moz-animation: Gradient 20s ease infinite;
-  animation: Gradient 20s ease infinite;
+  -webkit-animation: Gradient 17s ease infinite;
+  -moz-animation: Gradient 17s ease infinite;
+  animation: Gradient 17s ease infinite;
 }
 
 @-webkit-keyframes Gradient {
@@ -101,4 +102,22 @@
 
 .ibm-mono {
   font-family: 'IBM Plex Mono';
+}
+
+/* Styling for the links and clickable text */
+.clickable-text {
+  text-decoration: none;
+  color: white;
+
+  -webkit-transition: all 0.15s ease-in;
+  -moz-transition: all 0.15s ease-in;
+  transition: all 0.15s ease-in;
+}
+
+.clickable-text:hover {
+  color: gainsboro;
+}
+
+.active-clickable-text {
+  font-weight: 1200;
 }
