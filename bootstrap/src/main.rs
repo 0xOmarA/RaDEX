@@ -77,6 +77,21 @@ fn main() {
     );
     let faucet_component: ComponentAddress =
         ComponentAddress::from_str(faucet_instantiation.new_components[0].as_str()).unwrap();
+    let new_tokens: Vec<ResourceAddress> = faucet_instantiation
+        .new_resources
+        .iter()
+        .map(|x| ResourceAddress::from_str(x.as_str()).unwrap())
+        .collect();
+
+    let (
+        _,
+        bitcoin_resource_address,
+        ethereum_resource_address,
+        tether_resource_address,
+        bnb_resource_address,
+        _cardano_resource_address,
+    ) = (new_tokens[0], new_tokens[1], new_tokens[2], new_tokens[3], new_tokens[4], new_tokens[5]);
+    println!("Receipt for faucet is: {:?}", faucet_instantiation);
 
     // Creating a new RaDEX component which will be our main component for the DEX
     let radex_instantiation: Receipt = perform_transaction(
@@ -87,6 +102,49 @@ fn main() {
     );
     let radex_component: ComponentAddress =
         ComponentAddress::from_str(radex_instantiation.new_components[0].as_str()).unwrap();
+
+    // Liquidity pool creation
+    let liquidity_amounts: Vec<(ResourceAddress, Decimal, ResourceAddress, Decimal)> = vec![
+        (bitcoin_resource_address, dec!("2.8232784"), RADIX_TOKEN, 1_000_000.into()),
+        (ethereum_resource_address, dec!("41.49795699"), RADIX_TOKEN, 1_000_000.into()),
+        (tether_resource_address, dec!("85417"), RADIX_TOKEN, 1_000_000.into()),
+        (bnb_resource_address, dec!("258.8440399999"), RADIX_TOKEN, 1_000_000.into()),
+    ];
+    println!("Bitcoin's resource address: {:?}", bitcoin_resource_address);
+
+    println!("The balances are: {:?}",
+        perform_transaction(
+            TransactionBuilder::new()
+                .call_method(account_component_address, "balance", args![bitcoin_resource_address.clone()]),
+            &private_key,
+            &public_key,
+        )
+    );
+
+    let mut transaction_builder: &mut TransactionBuilder = &mut TransactionBuilder::new();
+    for (resource_address1, amount1, resource_address2, amount2) in liquidity_amounts.into_iter() {
+        transaction_builder = transaction_builder.call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
+            .call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
+            .withdraw_from_account_by_amount( amount1, resource_address1, account_component_address)
+            .withdraw_from_account_by_amount( amount2, resource_address2, account_component_address)
+            .take_from_worktop(resource_address1, |builder, bucket_id1| {
+                builder.take_from_worktop(resource_address2, |builder, bucket_id2| {
+                    builder.call_method(radex_component, "new_liquidity_pool", args![
+                        scrypto::resource::Bucket(bucket_id1),
+                        scrypto::resource::Bucket(bucket_id2)
+                    ])
+                })
+            })
+    }
+
+    let pool_instantiation: Receipt = perform_transaction(
+        transaction_builder
+            .call_method_with_all_resources(account_component_address, "deposit_batch"),
+        &private_key,
+        &public_key,
+    );
+
+    println!("Pools created in: {:?}", pool_instantiation);
 
     // Writing all of the important information to a new file in the src directory called
     // constants.js
@@ -102,8 +160,6 @@ fn main() {
     ] {
         file.write_all(format!("export const {} = \"{}\";\n", name, value).as_bytes()).unwrap();
     }
-
-
 }
 
 pub fn perform_transaction(

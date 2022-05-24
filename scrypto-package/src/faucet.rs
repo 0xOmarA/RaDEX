@@ -85,7 +85,7 @@ blueprint! {
         }
 
         /// Used to request funds from the faucet of a user-specified amount
-        pub fn request(&self, amount: i128) -> Vec<Bucket> {
+        pub fn get_tokens(&self, amount: i128) -> Vec<Bucket> {
             self.admin_badge.authorize(|| {
                 self.resource_addresses
                     .iter()

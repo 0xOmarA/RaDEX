@@ -112,12 +112,47 @@
   -webkit-transition: all 0.15s ease-in;
   -moz-transition: all 0.15s ease-in;
   transition: all 0.15s ease-in;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 300px;
+  padding: 5px 10px;
 }
 
 .clickable-text:hover {
-  color: gainsboro;
+  background-color: #000000b0;
+  box-shadow: 0px 0px 20px 5px #ffffff05;
+  color: white;
 }
 
 .active-clickable-text {
-  font-weight: 1200;
+  font-weight: 900;
+  background-color: #203a43;
+  /* background-color: #00000080; */
+}
+
+/* Styling for the fancy-clickable */
+.fancy-clickable {
+  border-radius: 25px; 
+  background-color: #00000080;
+  cursor: pointer;
+
+  -webkit-transition: all 0.15s;
+  -moz-transition: all 0.15s;
+  transition: all 0.15s;
+}
+
+.fancy-clickable:hover {
+  background-color: #000000b0;
+  box-shadow: 0px 0px 20px 5px #ffffff10;
+}
+
+/* Styling for the buttons */
+.button{
+  /* background-color: rgba(10, 132, 255, 255); */
+  background-color: green;
+  text-decoration: underline;
 }
