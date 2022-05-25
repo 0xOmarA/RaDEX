@@ -26,6 +26,18 @@ function App() {
   const location = useLocation()
   const path_name = location.pathname.split('/')[1];
 
+  // State variable used for the account address
+  const [accountAddress, setAccountAddress] = useState(undefined);
+
+  // Getting the account address as soon as everything is loaded up
+  useEffect(() => {
+    getAccountAddress().then((address) => {
+      setAccountAddress(address)
+    }).catch((e) => {
+      console.log("An error happened while attempting to get the address");
+    });
+  }, [])
+
   return (
     <div className="background d-flex flex-column h-100">
       {/* The Nav Bar */}
@@ -66,7 +78,7 @@ function App() {
           </a>
         </Nav>
         <Nav>
-          <AccountBar/>
+          <AccountBar address={accountAddress}/>
         </Nav>
         </Container>
       </Navbar>

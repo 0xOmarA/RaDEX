@@ -131,7 +131,6 @@
 .active-clickable-text {
   font-weight: 900;
   background-color: #203a43;
-  /* background-color: #00000080; */
 }
 
 /* Styling for the fancy-clickable */
@@ -150,9 +149,45 @@
   box-shadow: 0px 0px 20px 5px #ffffff10;
 }
 
-/* Styling for the buttons */
-.button{
-  /* background-color: rgba(10, 132, 255, 255); */
+/* Styling for the center panel */
+.center-panel {
+  max-width: 700px;
+  border-radius: 20px;
+  background-color: #000000A0;
+}
+
+/* Disabling some of the behaviour of the number input fields */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance:textfield; /* Firefox */
+}
+
+/* Elements that glow when they're hovered on */
+.hover-glow {
+  -webkit-transition: all 0.15s;
+  -moz-transition: all 0.15s;
+  transition: all 0.15s;
+
+  box-shadow: none;
+}
+
+.hover-glow:hover {
+  box-shadow: 0px 0px 3px 3px #ffffff10;
+  z-index: 1;
+}
+
+.hover-darker {
+  -webkit-transition: all 0.15s;
+  -moz-transition: all 0.15s;
+  transition: all 0.15s;
+}
+
+.hover-darker:hover {
   background-color: green;
-  text-decoration: underline;
 }
