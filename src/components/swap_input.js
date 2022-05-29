@@ -14,15 +14,15 @@ const StyledSwapInput = styled.input`
   border: none;
 
   font-size: 25px;
-`
+`;
 
 const StyledSwapInputDiv = styled.div`
-  background-color: #ffffff20;
+  background-color: #2c363a;
   
   border-radius: 10px;
   width: 100%;
   padding: 15px;
-`
+`;
 
 const SwapInput = ({resourceList, currentResource, currentAmount, onChange, className}) => {
   const [selectedResource, setSelectedResource] = useState(currentResource);

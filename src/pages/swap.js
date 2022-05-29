@@ -10,15 +10,16 @@ import SwapInput from "../components/swap_input";
 import { Button } from "react-bootstrap";
 
 import { chain } from 'mathjs'
+import SwapInOut from "../components/swap_in_out";
 
 const Swap = () => {
   const [pools, setPools] = useState([]);
   const [currentPool, setCurrentPool] = useState(undefined);
   const [tokenInfoMapping, setTokenInfoMapping] = useState({});
   
-  const [amountIn, setAmountIn] = useState('0');
+  const [amountIn, setAmountIn] = useState(undefined);
   const [resourceIn, setResourceIn] = useState(undefined);
-  const [amountOut, setAmountOut] = useState('0');
+  const [amountOut, setAmountOut] = useState(undefined);
   const [resourceOut, setResourceOut] = useState(undefined);
 
   const [validResourcesOutInfoMapping, setValidResourcesOutInfoMapping] = useState({});
@@ -42,6 +43,14 @@ const Swap = () => {
 
     let response = await signTransaction(manifest);
   } 
+
+  const handleSwapButtonOnClick = () => {
+    let resource1 = resourceIn;
+    let resource2 = resourceOut;
+
+    setResourceIn(resource2);
+    setResourceOut(resource1);
+  }
 
   // Getting the available pools, their addresses, as well as the tokens that they hold
   const api = new DefaultApi();
@@ -123,8 +132,8 @@ const Swap = () => {
       }
 
       setValidResourcesOutInfoMapping(validOutputResourcesMapping);
-      setResourceOut(undefined);
-      setAmountOut(undefined);
+      // setResourceOut(undefined);
+      // setAmountOut(undefined);
     }
   }, [resourceIn]);
 
@@ -171,8 +180,8 @@ const Swap = () => {
     }
   }, [resourceIn, resourceOut])
 
-  return <CenterPanel className='w-100'>
-    <h4 style={{fontWeight: 900}}>Swap </h4>
+  return <CenterPanel className='w-100 position-relative'>
+    <h4 style={{fontWeight: 900}}>Swap</h4>
     <p style={{fontSize: 12}}>Swap between fungible resources on the Radix public test environment</p>
 
     {/* The div with the two input fields */}
@@ -196,20 +205,28 @@ const Swap = () => {
           setAmountOut(amount);
         }}
       />
-      <Button 
-      className='ibm-mono mt-3 mx-auto w-100' 
-      onClick={handleButtonOnClick}
-      disabled={[amountIn, amountOut, resourceIn, resourceOut].some((x) => x === undefined)}
-      style={{
-        fontWeight: 900,
-        borderRadius:  90,
-        paddingInline: 20,
-      }}
-      >
-        Swap
-      </Button>
+      <SwapInOut
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-40%, -40%)',
+        }}
+        onClick={handleSwapButtonOnClick}
+      />
     </div>
-  
+    <Button 
+    className='ibm-mono mt-3 mx-auto w-100' 
+    onClick={handleButtonOnClick}
+    disabled={[amountIn, amountOut, resourceIn, resourceOut].some((x) => x === undefined)}
+    style={{
+      fontWeight: 900,
+      borderRadius:  90,
+      paddingInline: 20,
+    }}
+    >
+      Swap
+    </Button>
   </CenterPanel>
 }
 
