@@ -30,11 +30,11 @@ const SwapInput = ({resourceList, currentResource, currentAmount, onChange, clas
 
   useEffect(() => {
     setSelectedResource(currentResource);
-  }, currentResource);
+  }, [currentResource]);
   
-  // useEffect(() => {
-  //   setSelectedResource(currentAmount);
-  // }, currentAmount);
+  useEffect(() => {
+    setAmount(currentAmount);
+  }, [currentAmount]);
 
   // Callback functions
   /// Sets the currently selected token.
@@ -66,6 +66,7 @@ const SwapInput = ({resourceList, currentResource, currentAmount, onChange, clas
       placeholder='0.0'
       onWheel={handleOnWheel}
       onChange={handleOnChange}
+      value={amount}
     />
     <Dropdown
         onSelect={handleOnSelect}
@@ -92,7 +93,7 @@ const SwapInput = ({resourceList, currentResource, currentAmount, onChange, clas
               return <Dropdown.Item
                 key={key}
                 eventKey={key}
-                className='bg-dark p-2 primary-outline'
+                className='bg-dark p-2 primary-outline border-hover'
                 style={{color: 'white'}}
               >
                 <div className='d-flex flex-row align-items-center justify-content-start'>

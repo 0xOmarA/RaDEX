@@ -191,3 +191,14 @@ input[type=number] {
 .hover-darker:hover {
   background-color: green;
 }
+
+.border-hover {
+  -webkit-transition: all 0.15s;
+  -moz-transition: all 0.15s;
+  transition: all 0.15s;
+  border: none;
+}
+
+.border-hover:hover {
+  border-left: 4px solid #0275d8;
+}

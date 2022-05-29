@@ -1,14 +1,19 @@
 import CenterPanel from "../components/center_panel";
 
+import { getAccountAddress, signTransaction } from 'pte-browser-extension-sdk';
 import { DefaultApi, ManifestBuilder } from 'pte-sdk';
 import { useEffect, useState } from "react";
 
 import { RADEX_COMPONENT_ADDRESS } from '../constants';
 import { addressStringToAddress } from "../utils";
 import SwapInput from "../components/swap_input";
+import { Button } from "react-bootstrap";
+
+import { chain } from 'mathjs'
 
 const Swap = () => {
   const [pools, setPools] = useState([]);
+  const [currentPool, setCurrentPool] = useState(undefined);
   const [tokenInfoMapping, setTokenInfoMapping] = useState({});
   
   const [amountIn, setAmountIn] = useState('0');
@@ -18,6 +23,26 @@ const Swap = () => {
 
   const [validResourcesOutInfoMapping, setValidResourcesOutInfoMapping] = useState({});
 
+  const handleButtonOnClick = async (e) => {
+    // Getting the address of the currently active account to deposit the tokens into
+    const accountComponentAddress = await getAccountAddress();
+    
+
+    //  Building the swapping transaction
+    const manifest = new ManifestBuilder()
+      .callMethod(accountComponentAddress, 'withdraw_by_amount', [`Decimal("${amountIn}")`, `ResourceAddress("${resourceIn.resourceAddress}")`])
+      .takeFromWorktop(resourceIn.resourceAddress, 'inputBucket')
+      .callMethod(RADEX_COMPONENT_ADDRESS, "swap", [
+        `Bucket("inputBucket")`,
+        `ResourceAddress("${resourceOut.resourceAddress}")`
+      ])
+      .callMethodWithAllResources(accountComponentAddress, 'deposit_batch')
+      .build()
+      .toString();
+
+    let response = await signTransaction(manifest);
+  } 
+
   // Getting the available pools, their addresses, as well as the tokens that they hold
   const api = new DefaultApi();
   useEffect(() => {
@@ -26,8 +51,8 @@ const Swap = () => {
     }).then((response) => {
       let json_response = JSON.parse(response.state).fields[0].elements;
 
-      let keys = json_response.filter(item => item.type == 'Tuple');
-      let values = json_response.filter(item => item.type == 'Struct');
+      let keys = json_response.filter(item => item.type === 'Tuple');
+      let values = json_response.filter(item => item.type === 'Struct');
 
       let parsedResponse = keys.map(function(element, i) {
         let addresses = [element.elements[0].value, element.elements[1].value, values[i].fields[0].value].map(addressStringToAddress)
@@ -73,7 +98,6 @@ const Swap = () => {
           resourceMapping[resource.resourceAddress] = resource
         }
         setTokenInfoMapping(resourceMapping);
-        console.log("Token info has been updated", resourceMapping);
       })
     })
   }, []);
@@ -102,8 +126,50 @@ const Swap = () => {
       setResourceOut(undefined);
       setAmountOut(undefined);
     }
-
   }, [resourceIn]);
+
+  // This runs when the input amount changes
+  useEffect(() => {
+    if (![amountIn, resourceIn, resourceOut, currentPool].some((x) => x === undefined)) {
+      let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
+      setAmountOut(outputAmount);
+    }
+  }, [amountIn, resourceOut])
+
+  // This runs whenever any of the resources change (whether input or output)
+  useEffect(() => {
+    // Ensure that all of the resources we depend upon are not undefined
+    if (resourceIn !== undefined && resourceOut !== undefined) {
+      // Getting the component address of the liquidity pool
+      let liquidity_pool = pools.filter((x) => {
+        return (x.resources[0] === resourceIn.resourceAddress || x.resources[1] === resourceIn.resourceAddress) && (x.resources[0] === resourceOut.resourceAddress || x.resources[1] === resourceOut.resourceAddress)
+      })[0];
+
+      if (liquidity_pool !== undefined) {
+        // Query the API for the component state
+        api.getComponent({address: liquidity_pool.liquidityPoolComponent})
+        .then((response) => {
+          let balances = response.ownedResources
+            .filter((x) => x.amount !== '1');
+
+          let currentPool = new LiquidityPool(
+            liquidity_pool.liquidityPoolComponent,
+            
+            balances[0].resourceAddress,
+            balances[1].resourceAddress,
+            
+            balances[0].amount,
+            balances[1].amount,
+          );
+
+          setCurrentPool(currentPool);
+
+          let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
+          setAmountOut(outputAmount);
+        })
+      }
+    }
+  }, [resourceIn, resourceOut])
 
   return <CenterPanel className='w-100'>
     <h4 style={{fontWeight: 900}}>Swap </h4>
@@ -130,6 +196,18 @@ const Swap = () => {
           setAmountOut(amount);
         }}
       />
+      <Button 
+      className='ibm-mono mt-3 mx-auto w-100' 
+      onClick={handleButtonOnClick}
+      disabled={[amountIn, amountOut, resourceIn, resourceOut].some((x) => x === undefined)}
+      style={{
+        fontWeight: 900,
+        borderRadius:  90,
+        paddingInline: 20,
+      }}
+      >
+        Swap
+      </Button>
     </div>
   
   </CenterPanel>
@@ -149,10 +227,51 @@ class Resource {
   }
 
   get icon_url() {
-    if (this.resourceAddress == "030000000000000000000000000000000000000000000000000004") {
+    if (this.resourceAddress === "030000000000000000000000000000000000000000000000000004") {
       return "https://s2.coinmarketcap.com/static/img/coins/128x128/11948.png";
     } else {
       return this.metadata.icon_url || `https://api.kwelo.com/v1/media/identicon/${this.resourceAddress}`;
+    }
+  }
+}
+
+class LiquidityPool {
+  constructor (componentAddress, resource1Address, resource2Address, resource1Amount, resource2Amount) {
+    this.componentAddress = componentAddress
+
+    this.amountsMapping = {};
+    this.amountsMapping[resource1Address] = resource1Amount;
+    this.amountsMapping[resource2Address] = resource2Amount;
+  }
+
+  calculateOutputAmount(inputResourceAddress, inputAmount) {
+    let outputResourceAddress = this.otherResource(inputResourceAddress);
+
+    let x = this.amountsMapping[inputResourceAddress];
+    let y = this.amountsMapping[outputResourceAddress];
+    let dx = inputAmount;
+    let r = 0.97;
+
+    return chain(dx)
+      .multiply(r)
+      .multiply(y)
+      .divide(
+        chain(r)
+          .multiply(dx)
+          .add(x)
+          .done()
+      )
+      .done()
+  }
+
+  otherResource(resource) {
+    let keys = Object.keys(this.amountsMapping);
+    if (resource === keys[0]) {
+      return keys[1];
+    } else if (resource === keys[1]) {
+      return keys[0];
+    } else {
+      return undefined;
     }
   }
 }

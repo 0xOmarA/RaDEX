@@ -11,13 +11,12 @@ const Faucet = () => {
     <p>Funds are important when you're playing around with a test network and a test-dApp, won't you agree? The RaDEX faucet gets you a few tokens to get up and running on the PTE so you can go out and test RaDEX or other dApps.</p>
     <div className='d-flex align-items-center justify-content-center'>
       <Button 
-      className='ibm-mono' 
+      className='ibm-mono w-100' 
       onClick={handleButtonOnClick}
       style={{
         fontWeight: 900,
         borderRadius:  90,
         paddingInline: 20,
-        textTransform: 'uppercase'
       }}
       >
         Request Funds
