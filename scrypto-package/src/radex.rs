@@ -346,27 +346,5 @@ blueprint! {
             return self.liquidity_pools[&sorted_addresses]
                 .swap_tokens_for_exact_tokens(tokens, output_amount);
         }
-
-        /// Returns a HashMap of the tokens in liquidity pools and the component address of the corresponding pool.
-        pub fn get_liquidity_pools(
-            &self,
-        ) -> HashMap<(ResourceAddress, ResourceAddress), ComponentAddress> {
-            return self
-                .liquidity_pools
-                .iter()
-                .map(|(k, v)| (k.clone(), v.get_component_address()))
-                .collect();
-        }
-
-        /// Returns a HashMap of the tokens in liquidity pools and the token used to track liquidity provision.
-        pub fn get_liquidity_pools_tracking_tokens(
-            &self,
-        ) -> HashMap<(ResourceAddress, ResourceAddress), ResourceAddress> {
-            return self
-                .liquidity_pools
-                .iter()
-                .map(|(k, v)| (k.clone(), v.get_liquidity_pool_tracking_token()))
-                .collect();
-        }
     }
 }

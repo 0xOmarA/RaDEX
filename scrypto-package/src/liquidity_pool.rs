@@ -721,15 +721,5 @@ blueprint! {
             );
             return (output_tokens, tokens);
         }
-
-        /// Returns the component address of the liquidity pool.
-        pub fn get_component_address(&self) -> ComponentAddress {
-            return Runtime::actor().component_address().unwrap();
-        }
-
-        /// Returns the resource address of the token used to track the liquidity provision.
-        pub fn get_liquidity_pool_tracking_token(&self) -> ResourceAddress {
-            return self.tracking_token_address;
-        }
     }
 }
