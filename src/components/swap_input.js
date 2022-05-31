@@ -80,7 +80,7 @@ const SwapInput = ({resourceList, currentResource, currentAmount, onChange, clas
             selectedResource === undefined ? 
               <p className='m-0 p-0 pe-2'>Select</p>
               : <div className='d-flex flex-row align-items-center justify-content-start'>
-                <img src={selectedResource.icon_url} style={{width: 25, height: 25}} className='me-3'/>
+                <img src={selectedResource.icon_url} style={{width: 25, height: 25, borderRadius: '300px'}} className='me-3'/>
                 <p className='m-0 p-0'>{selectedResource.metadata.symbol}</p>
               </div>
           }
@@ -98,7 +98,7 @@ const SwapInput = ({resourceList, currentResource, currentAmount, onChange, clas
                 style={{color: 'white'}}
               >
                 <div className='d-flex flex-row align-items-center justify-content-start'>
-                  <img src={resourceList[key].icon_url} style={{width: 25, height: 25}} className='me-3'/>
+                  <img src={resourceList[key].icon_url} style={{width: 25, height: 25, borderRadius: '300px'}} className='me-3'/>
                   <p className='m-0 p-0 me-3'>{addressToAddressShorthand(resourceList[key].resourceAddress, 5)}</p>
                   <p className='m-0 p-0'>{resourceList[key].metadata.name}</p>
                 </div>

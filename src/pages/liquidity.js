@@ -49,11 +49,11 @@ const Swap = () => {
   } 
 
   const handleSwapButtonOnClick = () => {
-    let resource1 = resource1;
-    let resource2 = resource2;
+    let _resource1 = resource1;
+    let _resource2 = resource2;
 
-    setResource1(resource2);
-    setResource2(resource1);
+    setResource1(_resource2);
+    setResource2(_resource1);
   }
 
   // Getting the available pools, their addresses, as well as the tokens that they hold
