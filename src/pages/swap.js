@@ -9,7 +9,9 @@ import { addressStringToAddress } from "../utils";
 import SwapInput from "../components/swap_input";
 import { Button } from "react-bootstrap";
 
-import { chain } from 'mathjs'
+import Resource from '../library/resource';
+import LiquidityPool from '../library/liquidity_pool';
+
 import SwapInOut from "../components/swap_in_out";
 
 const Swap = () => {
@@ -248,83 +250,3 @@ const Swap = () => {
 }
 
 export default Swap;
-
-/// Definition of the resource class used in this page. All that this class does is that it stores the information on 
-/// resources and includes useful getter methods to allow for quick interactions with resources.
-class Resource {
-  constructor (resourceAddress, resourceType, divisibility, metadata, totalSupply) {
-    this.resourceAddress = resourceAddress;
-    this.resourceType = resourceType;
-    this.divisibility = divisibility;
-    this.metadata = metadata;
-    this.totalSupply = totalSupply;
-  }
-
-  get icon_url() {
-    if (this.resourceAddress === "030000000000000000000000000000000000000000000000000004") {
-      return "https://s2.coinmarketcap.com/static/img/coins/128x128/11948.png";
-    } else {
-      return this.metadata.icon_url || `https://api.kwelo.com/v1/media/identicon/${this.resourceAddress}`;
-    }
-  }
-}
-
-class LiquidityPool {
-  constructor (componentAddress, resource1Address, resource2Address, resource1Amount, resource2Amount) {
-    this.componentAddress = componentAddress
-
-    this.amountsMapping = {};
-    this.amountsMapping[resource1Address] = resource1Amount;
-    this.amountsMapping[resource2Address] = resource2Amount;
-  }
-
-  calculateOutputAmount(inputResourceAddress, inputAmount) {
-    let outputResourceAddress = this.otherResource(inputResourceAddress);
-
-    let x = this.amountsMapping[inputResourceAddress];
-    let y = this.amountsMapping[outputResourceAddress];
-    let dx = inputAmount;
-    let r = 0.97;
-
-    return chain(dx)
-      .multiply(r)
-      .multiply(y)
-      .divide(
-        chain(r)
-          .multiply(dx)
-          .add(x)
-          .done()
-      )
-      .done()
-  }
-
-  calculateInputAmount(outputResourceAddress, outputAmount) {
-    let inputResourceAddress = this.otherResource(outputResourceAddress);
-
-    let x = this.amountsMapping[inputResourceAddress];
-    let y = this.amountsMapping[outputResourceAddress];
-    let dy = outputAmount;
-    let r = 0.97;
-
-    return chain(dy)
-      .multiply(x)
-      .divide(
-        chain(y)
-          .subtract(dy)
-          .multiply(r)
-          .done()
-      )
-      .done()
-  }
-
-  otherResource(resource) {
-    let keys = Object.keys(this.amountsMapping);
-    if (resource === keys[0]) {
-      return keys[1];
-    } else if (resource === keys[1]) {
-      return keys[0];
-    } else {
-      return undefined;
-    }
-  }
-}
