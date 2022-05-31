@@ -70,6 +70,7 @@ const SwapInput = ({resourceList, currentResource, currentAmount, onChange, clas
     />
     <Dropdown
         onSelect={handleOnSelect}
+        autoClose={true}
       >
         <Dropdown.Toggle
           className='p-3 d-flex flex-row justify-content-center align-items-center fw-bold hover-glow outline-none'

@@ -89,7 +89,7 @@ const Swap = () => {
         })
         .flat())];
       
-      // Getting the image associated with each of the unique resource addresses
+      // Loading up the information of the token
       Promise.all(
         uniqueResourceAddresses.map(async (resourceAddress) => {
           let resourceInformation = await api.getResource({address: resourceAddress})
@@ -183,7 +183,7 @@ const Swap = () => {
     }
   }, [resourceIn, resourceOut])
 
-  return <CenterPanel className='w-100 position-relative overflow-hidden'>
+  return <CenterPanel className='w-100 position-relative'>
     <Loading isLoading={isLoading}/>
 
     <h4 style={{fontWeight: 900}}>Swap</h4>

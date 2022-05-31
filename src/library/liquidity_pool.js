@@ -29,6 +29,20 @@ class LiquidityPool {
       .done()
   }
 
+  calculateOutputLiquidityAmount(inputLiquidityResourceAddress, inputLiquidityAmount) {
+    console.log("Here")
+    let outputLiquidityResourceAddress = this.otherResource(inputLiquidityResourceAddress);
+
+    let dx = inputLiquidityAmount;
+    let x = this.amountsMapping[inputLiquidityResourceAddress];
+    let y = this.amountsMapping[outputLiquidityResourceAddress];
+
+    return chain(dx)
+      .multiply(y)
+      .divide(x)
+      .done()
+  }
+
   calculateInputAmount(outputResourceAddress, outputAmount) {
     let inputResourceAddress = this.otherResource(outputResourceAddress);
 
@@ -45,6 +59,19 @@ class LiquidityPool {
           .multiply(r)
           .done()
       )
+      .done()
+  }
+
+  calculateInputLiquidityAmount(outputLiquidityResourceAddress, outputLiquidityAmount) {
+    let inputLiquidityResourceAddress = this.otherResource(outputLiquidityResourceAddress);
+
+    let dx = outputLiquidityAmount;
+    let x = this.amountsMapping[outputLiquidityResourceAddress];
+    let y = this.amountsMapping[inputLiquidityResourceAddress];
+
+    return chain(dx)
+      .multiply(y)
+      .divide(x)
       .done()
   }
 

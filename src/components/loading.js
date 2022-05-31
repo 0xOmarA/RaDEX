@@ -7,6 +7,7 @@ const Loading = ({isLoading}) => {
       zIndex: 2, 
       backgroundColor: "#000000D0", 
       display: isLoading ? 'flex' : 'none',
+      borderRadius: 'inherit'
     }}
   >
     <div className='loader'></div>
