@@ -22,6 +22,8 @@ const Swap = () => {
   const [amountOut, setAmountOut] = useState(undefined);
   const [resourceOut, setResourceOut] = useState(undefined);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [validResourcesOutInfoMapping, setValidResourcesOutInfoMapping] = useState({});
 
   const handleButtonOnClick = async (e) => {
@@ -42,6 +44,7 @@ const Swap = () => {
       .toString();
 
     let response = await signTransaction(manifest);
+    console.log(response);
   } 
 
   const handleSwapButtonOnClick = () => {
@@ -55,6 +58,8 @@ const Swap = () => {
   // Getting the available pools, their addresses, as well as the tokens that they hold
   const api = new DefaultApi();
   useEffect(() => {
+    setIsLoading(true);
+
     api.getComponent({
       address: RADEX_COMPONENT_ADDRESS
     }).then((response) => {
@@ -106,7 +111,10 @@ const Swap = () => {
         for (const resource of results) {
           resourceMapping[resource.resourceAddress] = resource
         }
+
+        console.log('Loading should stop now');
         setTokenInfoMapping(resourceMapping);
+        setIsLoading(false);
       })
     })
   }, []);
@@ -136,14 +144,6 @@ const Swap = () => {
       // setAmountOut(undefined);
     }
   }, [resourceIn]);
-
-  // This runs when the input amount changes
-  useEffect(() => {
-    if (![amountIn, resourceIn, resourceOut, currentPool].some((x) => x === undefined)) {
-      let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
-      setAmountOut(outputAmount);
-    }
-  }, [amountIn, resourceOut])
 
   // This runs whenever any of the resources change (whether input or output)
   useEffect(() => {
@@ -180,7 +180,14 @@ const Swap = () => {
     }
   }, [resourceIn, resourceOut])
 
-  return <CenterPanel className='w-100 position-relative'>
+  return <CenterPanel className='w-100 position-relative overflow-hidden'>
+    <div 
+      className='position-absolute w-100 h-100 justify-content-center align-items-center'
+      style={{top:0, left:0, zIndex: 2, backgroundColor: "#000000D0", display: isLoading ? 'flex' : 'none'}}
+    >
+      <div className='loader'></div>
+    </div>
+
     <h4 style={{fontWeight: 900}}>Swap</h4>
     <p style={{fontSize: 12}}>Swap between fungible resources on the Radix public test environment</p>
 
@@ -193,6 +200,11 @@ const Swap = () => {
         onChange={(resource, amount) => {
           setResourceIn(resource);
           setAmountIn(amount);
+
+          let outputAmount = currentPool.calculateOutputAmount(resource.resourceAddress, amount);
+          if (outputAmount !== undefined) {
+            setAmountOut(outputAmount);
+          }
         }}
       />
       <SwapInput 
@@ -203,6 +215,11 @@ const Swap = () => {
         onChange={(resource, amount) => {
           setResourceOut(resource);
           setAmountOut(amount);
+
+          let inputAmount = currentPool.calculateInputAmount(resource.resourceAddress, amount);
+          if (inputAmount !== undefined) {
+            setAmountIn(inputAmount);
+          }
         }}
       />
       <SwapInOut
@@ -276,6 +293,25 @@ class LiquidityPool {
         chain(r)
           .multiply(dx)
           .add(x)
+          .done()
+      )
+      .done()
+  }
+
+  calculateInputAmount(outputResourceAddress, outputAmount) {
+    let inputResourceAddress = this.otherResource(outputResourceAddress);
+
+    let x = this.amountsMapping[inputResourceAddress];
+    let y = this.amountsMapping[outputResourceAddress];
+    let dy = outputAmount;
+    let r = 0.97;
+
+    return chain(dy)
+      .multiply(x)
+      .divide(
+        chain(y)
+          .subtract(dy)
+          .multiply(r)
           .done()
       )
       .done()

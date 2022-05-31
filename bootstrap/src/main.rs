@@ -197,6 +197,10 @@ pub fn new_account(
     let random_nonce: u64 = rand::thread_rng().gen_range(0..100);
     let account_creation_tx: SignedTransaction = TransactionBuilder::new()
         .call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
+        .call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
+        .call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
+        .call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
+        .call_method(SYSTEM_COMPONENT, "free_xrd", vec![])
         .take_from_worktop(RADIX_TOKEN, |builder, bucket_id| {
             builder.new_account_with_resource(&withdraw_rule, bucket_id)
         })
