@@ -81,6 +81,9 @@ export const updateState = async () => {
       lpTokenParsedObject[element.resourceAddresses.reverse()] = element.lpTokenResourceAddress;
     }
 
+    // Finally, adding the LP token to the liquidity pool information
+    
+
     console.log(lpTokenParsedObject);
     console.log(componentAddressParsedResponse)
 
