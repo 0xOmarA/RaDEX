@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { RADEX_COMPONENT_ADDRESS } from '../constants';
 import { addressStringToAddress } from "../utils";
 import SwapInput from "../components/swap_input";
+import Loading from '../components/loading';
 import { Button } from "react-bootstrap";
 
 import Resource from '../library/resource';
@@ -183,12 +184,7 @@ const Swap = () => {
   }, [resourceIn, resourceOut])
 
   return <CenterPanel className='w-100 position-relative overflow-hidden'>
-    <div 
-      className='position-absolute w-100 h-100 justify-content-center align-items-center'
-      style={{top:0, left:0, zIndex: 2, backgroundColor: "#000000D0", display: isLoading ? 'flex' : 'none'}}
-    >
-      <div className='loader'></div>
-    </div>
+    <Loading isLoading={isLoading}/>
 
     <h4 style={{fontWeight: 900}}>Swap</h4>
     <p style={{fontSize: 12}}>Swap between fungible resources on the Radix public test environment</p>
