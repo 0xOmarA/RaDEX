@@ -15,7 +15,13 @@ import LiquidityPool from '../library/liquidity_pool';
 
 import SwapInOut from "../components/swap_in_out";
 
+import {useTracked} from '../state';
+
 const Swap = () => {
+  const [state, setState] = useTracked();
+
+  console.log(state.liquidityPools)
+
   const [pools, setPools] = useState([]);
   const [currentPool, setCurrentPool] = useState(undefined);
   const [tokenInfoMapping, setTokenInfoMapping] = useState({});
