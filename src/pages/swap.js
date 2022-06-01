@@ -1,38 +1,37 @@
 import CenterPanel from "../components/center_panel";
 
 import { getAccountAddress, signTransaction } from 'pte-browser-extension-sdk';
-import { DefaultApi, ManifestBuilder } from 'pte-sdk';
-import { useEffect, useState } from "react";
+import { ManifestBuilder } from 'pte-sdk';
+import { useContext, useEffect, useState } from "react";
 
 import { RADEX_COMPONENT_ADDRESS } from '../constants';
-import { addressStringToAddress } from "../utils";
 import SwapInput from "../components/swap_input";
-import Loading from '../components/loading';
 import { Button } from "react-bootstrap";
-
-import Resource from '../library/resource';
-import LiquidityPool from '../library/liquidity_pool';
 
 import SwapInOut from "../components/swap_in_out";
 
+import { AppContext } from "../App";
+
 const Swap = () => {
-  const [pools, setPools] = useState([]);
+  const state = useContext(AppContext);
+
   const [currentPool, setCurrentPool] = useState(undefined);
-  const [tokenInfoMapping, setTokenInfoMapping] = useState({});
   
   const [amountIn, setAmountIn] = useState(undefined);
   const [resourceIn, setResourceIn] = useState(undefined);
   const [amountOut, setAmountOut] = useState(undefined);
   const [resourceOut, setResourceOut] = useState(undefined);
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const [validResourcesOutInfoMapping, setValidResourcesOutInfoMapping] = useState({});
+
+  useEffect(() => {
+    console.log("From Swap.js, the current state is", state);
+  })
+
 
   const handleButtonOnClick = async (e) => {
     // Getting the address of the currently active account to deposit the tokens into
     const accountComponentAddress = await getAccountAddress();
-    
 
     //  Building the swapping transaction
     const manifest = new ManifestBuilder()
@@ -58,88 +57,26 @@ const Swap = () => {
     setResourceOut(resource1);
   }
 
-  // Getting the available pools, their addresses, as well as the tokens that they hold
-  const api = new DefaultApi();
-  useEffect(() => {
-    setIsLoading(true);
-
-    api.getComponent({
-      address: RADEX_COMPONENT_ADDRESS
-    }).then((response) => {
-      let json_response = JSON.parse(response.state).fields[0].elements;
-
-      let keys = json_response.filter(item => item.type === 'Tuple');
-      let values = json_response.filter(item => item.type === 'Struct');
-
-      let parsedResponse = keys.map(function(element, i) {
-        let addresses = [element.elements[0].value, element.elements[1].value, values[i].fields[0].value].map(addressStringToAddress)
-        
-        return {
-          resources: [addresses[0], addresses[1]],
-          liquidityPoolComponent: addresses[2]
-        };
-      })
-
-      setPools(parsedResponse);
-
-      // Getting a list of all of the unique token addresses in the list
-      let uniqueResourceAddresses = [...new Set(parsedResponse
-        .map((item) => {
-          return item.resources
-        })
-        .flat())];
-      
-      // Loading up the information of the token
-      Promise.all(
-        uniqueResourceAddresses.map(async (resourceAddress) => {
-          let resourceInformation = await api.getResource({address: resourceAddress})
-          
-          let metadata = {};
-          for (const item of resourceInformation.metadata) {
-            metadata[item.name] = item.value;
-          }
-
-          let resource = new Resource(
-            resourceAddress,
-            resourceInformation.resource_type,
-            resourceInformation.divisibility,
-            metadata,
-            resourceInformation.total_supply
-          );
-        
-          return resource
-        })
-      ).then((results) => {
-        let resourceMapping = {};
-        for (const resource of results) {
-          resourceMapping[resource.resourceAddress] = resource
-        }
-
-        console.log('Swap loading should stop now');
-        setTokenInfoMapping(resourceMapping);
-        setIsLoading(false);
-      })
-    })
-  }, []);
-
   // This runs when the resource changes to find the resources which it can be exchanged for
   useEffect(() => {
     if (resourceIn !== undefined) {
       const resourceInAddress = resourceIn.resourceAddress;
   
       let validOutputResources = [];
-      for (const poolInformation of pools) {
-        if (poolInformation.resources.includes(resourceInAddress)) {
-          validOutputResources.push(...poolInformation.resources)
+      for (const poolInformation of state.liquidityPools) {
+        let poolResources = Object.keys(poolInformation.amountsMapping);
+        if (poolResources.includes(resourceInAddress)) {
+          validOutputResources.push(...poolResources)
         }
       }
+      console.log("valid resources are:", validOutputResources);
   
       let uniqueResourceAddresses = [...new Set(validOutputResources)]
         .filter((x) => x !== resourceInAddress);
         
       let validOutputResourcesMapping = {};
       for (const resourceAddress of uniqueResourceAddresses) {
-        validOutputResourcesMapping[resourceAddress] = tokenInfoMapping[resourceAddress];
+        validOutputResourcesMapping[resourceAddress] = state.resourceInfoMapping[resourceAddress];
       }
 
       setValidResourcesOutInfoMapping(validOutputResourcesMapping);
@@ -153,46 +90,29 @@ const Swap = () => {
     // Ensure that all of the resources we depend upon are not undefined
     if (resourceIn !== undefined && resourceOut !== undefined) {
       // Getting the component address of the liquidity pool
-      let liquidity_pool = pools.filter((x) => {
-        return (x.resources[0] === resourceIn.resourceAddress || x.resources[1] === resourceIn.resourceAddress) && (x.resources[0] === resourceOut.resourceAddress || x.resources[1] === resourceOut.resourceAddress)
+      let currentPool = state.liquidityPools.filter((x) => {
+        let poolResources = Object.keys(x.amountsMapping);
+        return poolResources.includes(resourceIn.resourceAddress) && poolResources.includes(resourceOut.resourceAddress);
       })[0];
 
-      if (liquidity_pool !== undefined) {
-        // Query the API for the component state
-        api.getComponent({address: liquidity_pool.liquidityPoolComponent})
-        .then((response) => {
-          let balances = response.ownedResources
-            .filter((x) => x.amount !== '1');
+      if (currentPool !== undefined) {
+        setCurrentPool(currentPool);
+        let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
+        setAmountOut(outputAmount);
 
-          let currentPool = new LiquidityPool(
-            liquidity_pool.liquidityPoolComponent,
-            
-            balances[0].resourceAddress,
-            balances[1].resourceAddress,
-            
-            balances[0].amount,
-            balances[1].amount,
-          );
-
-          setCurrentPool(currentPool);
-
-          let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
-          setAmountOut(outputAmount);
-        })
+        console.log("Liquidity pool was found to be:", currentPool);
       }
     }
   }, [resourceIn, resourceOut])
 
   return <CenterPanel className='w-100 position-relative'>
-    <Loading isLoading={isLoading}/>
-
     <h4 style={{fontWeight: 900}}>Swap</h4>
     <p style={{fontSize: 12}}>Swap between fungible resources on the Radix public test environment</p>
 
     {/* The div with the two input fields */}
     <div className='w-100'>
       <SwapInput 
-        resourceList={tokenInfoMapping}
+        resourceList={state.resourceInfoMapping || {}}
         currentResource={resourceIn}
         currentAmount={amountIn}
         onChange={(resource, amount) => {
@@ -218,6 +138,10 @@ const Swap = () => {
           if (inputAmount !== undefined) {
             setAmountIn(inputAmount);
           }
+
+          console.log(inputAmount);
+          console.log(resource.resourceAddress);
+          console.log(amount);
         }}
       />
       <SwapInOut

@@ -11,13 +11,17 @@ import "@fontsource/ibm-plex-sans";
 // React router imports
 import { BrowserRouter } from "react-router-dom";
 
+import { Provider } from './state';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App/>
-    </BrowserRouter>
-  </React.StrictMode>
+  <Provider>
+    <React.StrictMode>
+      <BrowserRouter>
+        <App/>
+      </BrowserRouter>
+    </React.StrictMode>
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function
