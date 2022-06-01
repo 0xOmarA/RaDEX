@@ -77,48 +77,50 @@ const Swap = () => {
           liquidityPoolComponent: addresses[2]
         };
       })
-
       setPools(parsedResponse);
 
       // Getting a list of all of the unique tokens the user account has
       getAccountAddress().then((accountAddress) => {
         api.getComponent({address: accountAddress}).then((componentInfo) => {
-          let tokensResourceAddresses = parsedResponse.map((item) => item.resources).flat()
+          let tokensResourceAddresses = []
           for (const resource of componentInfo.ownedResources) {
             tokensResourceAddresses.push(resource.resourceAddress);
           }
 
           // Getting a list of all of the unique token addresses in the list
-          let uniqueResourceAddresses = [...new Set(tokensResourceAddresses)
-          ];
+          let uniqueResourceAddresses = [...new Set(tokensResourceAddresses)];
           
           // Loading up the information of the token
+          console.log("beginning the operation")
           Promise.all(
-            uniqueResourceAddresses.map(async (resourceAddress) => {
-              let resourceInformation = await api.getResource({address: resourceAddress})
-              
+            uniqueResourceAddresses.map((resourceAddress) => api.getResource({address: resourceAddress}))
+          ).then((results) => {
+            console.log("Results are", results)
+            results = results.map((resourceInformation, i) => {
               let metadata = {};
               for (const item of resourceInformation.metadata) {
                 metadata[item.name] = item.value;
               }
-
+              console.log(resourceInformation);
+              
               let resource = new Resource(
-                resourceAddress,
+                uniqueResourceAddresses[i],
                 resourceInformation.resource_type,
                 resourceInformation.divisibility,
                 metadata,
                 resourceInformation.total_supply
-              );
-            
-              return resource
-            })
-          ).then((results) => {
+                );
+                
+                return resource
+            });
+
+            console.log("Results are:", results);
             let resourceMapping = {};
             for (const resource of results) {
               resourceMapping[resource.resourceAddress] = resource
             }
 
-            console.log('Loading should stop now');
+            console.log('Liquidity loading should stop now', resourceMapping);
             setTokenInfoMapping(resourceMapping);
             setValidResourcesOutInfoMapping(resourceMapping);
             setIsLoading(false);

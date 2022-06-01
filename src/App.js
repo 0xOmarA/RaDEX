@@ -30,13 +30,16 @@ function App() {
   const [accountAddress, setAccountAddress] = useState(undefined);
 
   // Getting the account address as soon as everything is loaded up
-  useEffect(() => {
-    getAccountAddress().then((address) => {
-      setAccountAddress(address)
-    }).catch((e) => {
-      console.log("An error happened while attempting to get the address");
-    });
-  }, [])
+  // useEffect(() => {
+  //   setTimeout(async () => {
+  //     console.log("Attempting to get the account address")
+  //     getAccountAddress().then((address) => {
+  //       setAccountAddress(address)
+  //     }).catch((e) => {
+  //       console.log("An error happened while attempting to get the address");
+  //     });
+  //   }, Math.round(Math.random() * 12000))
+  // }, [])
 
   return (
     <div className="background d-flex flex-column h-100">

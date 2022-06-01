@@ -115,7 +115,7 @@ const Swap = () => {
           resourceMapping[resource.resourceAddress] = resource
         }
 
-        console.log('Loading should stop now');
+        console.log('Swap loading should stop now');
         setTokenInfoMapping(resourceMapping);
         setIsLoading(false);
       })
