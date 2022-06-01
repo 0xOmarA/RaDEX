@@ -1,12 +1,13 @@
 import { chain } from 'mathjs'
 
 class LiquidityPool {
-  constructor(componentAddress, resource1Address, resource2Address, resource1Amount, resource2Amount) {
+  constructor(componentAddress, resource1Address, resource2Address, resource1Amount, resource2Amount, trackingTokenResourceAddress) {
     this.componentAddress = componentAddress
 
     this.amountsMapping = {};
     this.amountsMapping[resource1Address] = resource1Amount;
     this.amountsMapping[resource2Address] = resource2Amount;
+    this.trackingTokenResourceAddress = trackingTokenResourceAddress;
   }
 
   calculateOutputAmount(inputResourceAddress, inputAmount) {
