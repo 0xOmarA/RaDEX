@@ -1,22 +1,19 @@
 import CenterPanel from "../components/center_panel";
 
 import { getAccountAddress, signTransaction } from 'pte-browser-extension-sdk';
-import { DefaultApi, ManifestBuilder } from 'pte-sdk';
-import { useEffect, useState } from "react";
+import { ManifestBuilder } from 'pte-sdk';
+import { useContext, useEffect, useState } from "react";
 
 import { RADEX_COMPONENT_ADDRESS } from '../constants';
 import SwapInput from "../components/swap_input";
 import { Button } from "react-bootstrap";
 
-import Resource from '../library/resource';
-import LiquidityPool from '../library/liquidity_pool';
-
 import SwapInOut from "../components/swap_in_out";
 
-import { useTracked, Provider } from '../state';
+import { AppContext } from "../App";
 
 const Swap = () => {
-  const [state, setState] = useTracked();
+  const state = useContext(AppContext);
 
   const [currentPool, setCurrentPool] = useState(undefined);
   
@@ -68,17 +65,19 @@ const Swap = () => {
   
       let validOutputResources = [];
       for (const poolInformation of state.liquidityPools) {
-        if (poolInformation.resources.includes(resourceInAddress)) {
-          validOutputResources.push(...poolInformation.resources)
+        let poolResources = Object.keys(poolInformation.amountsMapping);
+        if (poolResources.includes(resourceInAddress)) {
+          validOutputResources.push(...poolResources)
         }
       }
+      console.log("valid resources are:", validOutputResources);
   
       let uniqueResourceAddresses = [...new Set(validOutputResources)]
         .filter((x) => x !== resourceInAddress);
         
       let validOutputResourcesMapping = {};
       for (const resourceAddress of uniqueResourceAddresses) {
-        validOutputResourcesMapping[resourceAddress] = state.tokenInfoMapping[resourceAddress];
+        validOutputResourcesMapping[resourceAddress] = state.resourceInfoMapping[resourceAddress];
       }
 
       setValidResourcesOutInfoMapping(validOutputResourcesMapping);
@@ -92,33 +91,17 @@ const Swap = () => {
     // Ensure that all of the resources we depend upon are not undefined
     if (resourceIn !== undefined && resourceOut !== undefined) {
       // Getting the component address of the liquidity pool
-      let liquidity_pool = state.liquidityPools.filter((x) => {
-        return (x.resources[0] === resourceIn.resourceAddress || x.resources[1] === resourceIn.resourceAddress) && (x.resources[0] === resourceOut.resourceAddress || x.resources[1] === resourceOut.resourceAddress)
+      let currentPool = state.liquidityPools.filter((x) => {
+        let poolResources = Object.keys(x.amountsMapping);
+        return poolResources.includes(resourceIn.resourceAddress) && poolResources.includes(resourceOut.resourceAddress);
       })[0];
 
-      if (liquidity_pool !== undefined) {
-        // Query the API for the component state
-        const api = new DefaultApi();
-        api.getComponent({address: liquidity_pool.liquidityPoolComponent})
-        .then((response) => {
-          let balances = response.ownedResources
-            .filter((x) => x.amount !== '1');
+      if (currentPool !== undefined) {
+        setCurrentPool(currentPool);
+        let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
+        setAmountOut(outputAmount);
 
-          let currentPool = new LiquidityPool(
-            liquidity_pool.liquidityPoolComponent,
-            
-            balances[0].resourceAddress,
-            balances[1].resourceAddress,
-            
-            balances[0].amount,
-            balances[1].amount,
-          );
-
-          setCurrentPool(currentPool);
-
-          let outputAmount = currentPool.calculateOutputAmount(resourceIn.resourceAddress, amountIn);
-          setAmountOut(outputAmount);
-        })
+        console.log("Liquidity pool was found to be:", currentPool);
       }
     }
   }, [resourceIn, resourceOut])
@@ -130,7 +113,7 @@ const Swap = () => {
     {/* The div with the two input fields */}
     <div className='w-100'>
       <SwapInput 
-        resourceList={state.tokenInfoMapping || {}}
+        resourceList={state.resourceInfoMapping || {}}
         currentResource={resourceIn}
         currentAmount={amountIn}
         onChange={(resource, amount) => {
@@ -156,6 +139,10 @@ const Swap = () => {
           if (inputAmount !== undefined) {
             setAmountIn(inputAmount);
           }
+
+          console.log(inputAmount);
+          console.log(resource.resourceAddress);
+          console.log(amount);
         }}
       />
       <SwapInOut

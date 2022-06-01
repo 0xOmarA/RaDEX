@@ -20,7 +20,7 @@ import AccountBar from './components/account_bar';
 // Icon imports
 import { FaExchangeAlt, FaFaucet, FaGithub } from 'react-icons/fa';
 import { BsDropletHalf } from 'react-icons/bs';
-import { useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 
 import Loading from './components/loading'
 
@@ -30,11 +30,17 @@ import Resource from './library/resource';
 import { RADEX_COMPONENT_ADDRESS } from './constants';
 import { addressStringToAddress } from './utils';
 
-import { useTracked, Provider } from './state';
+export const AppContext = createContext(null);
 
 function App() {
   // The application global state
-  const [state, setState] = useTracked();
+  const [state, setState] = useState({
+    accountComponentAddress: undefined,
+
+    liquidityPools: [],
+    resourceInfoMapping: {},
+    ownedResourceInfoMapping: {},
+  });
 
   // Determine the currently active page from the location
   const location = useLocation()
@@ -43,23 +49,11 @@ function App() {
   // The state which tells us whether the app is loading or not
   const [isLoading, setIsLoading] = useState(false);
 
-  // State variable used for the account address
-  const [accountAddress, setAccountAddress] = useState(undefined);
-
   // We need to have functions and methods to get the state when the user enters the site and also periodically every 
   // now and then. 
   const updateState = async () => {
     // This is the API object that will be used by this function
     const api = new DefaultApi();
-
-    // Getting the account component's address
-    queueMicrotask(async () => {
-      let address = await getAccountAddress();
-      setState((s) => ({
-        ...s,
-        accountComponentAddress: address
-      }))
-    });
 
     // Query the RaDEX component for the liquidity pools that it has
     const radexComponentInformation = await api.getComponent({ address: RADEX_COMPONENT_ADDRESS });
@@ -170,6 +164,35 @@ function App() {
         resourceInfoMapping: mapping
       }))
     })
+
+    // Getting the resource available in the account component
+    let address = await getAccountAddress();
+    setState((s) => ({
+      ...s,
+      accountComponentAddress: address
+    }));
+    api.getComponent({address: address}).then((response) => {
+      console.log("response about account is", response);
+      let ownedResourceAddresses = response.ownedResources.map(x => x.resourceAddress);
+      Promise.all(
+        ownedResourceAddresses.map(async (resourceAddress) => {
+          return Resource.fromResourceAddress(resourceAddress);
+        })
+      ).then((results) => {
+        // Creating a simple mapping from the resources
+        let mapping = {}
+        for (const resource of results) {
+          mapping[resource.resourceAddress] = resource;
+        }
+  
+        setState((s) => ({
+          ...s,
+          ownedResourceInfoMapping: mapping
+        }))
+      })
+    })
+    // let accountResources = (await api.getComponent({address: address}))['owned_resources'].map((x) => x.resource_address);
+    // console.log(accountResources);
   }
 
   // This method will execute one the component has mounted
@@ -178,12 +201,9 @@ function App() {
     updateState().then(() => setIsLoading(false))
   }, [])
 
-  useEffect(() => {
-    console.log("From App.js, state has updated", state);
-  }, [state])
-
   return (
-    <div className="background d-flex flex-column h-100">
+    <AppContext.Provider value={state}>
+      <div className="background d-flex flex-column h-100">
       <Loading isLoading={isLoading} />
       {/* The Nav Bar */}
       <Navbar variant="dark" className='pt-4'>
@@ -223,7 +243,7 @@ function App() {
             </a>
           </Nav>
           <Nav>
-            <AccountBar address={accountAddress} />
+            <AccountBar address={state.accountComponentAddress} />
           </Nav>
         </Container>
       </Navbar>
@@ -246,6 +266,7 @@ function App() {
         <PoweredByRadix />
       </div>
     </div>
+    </AppContext.Provider>
   );
 }
 

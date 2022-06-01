@@ -11,6 +11,10 @@ class LiquidityPool {
   }
 
   calculateOutputAmount(inputResourceAddress, inputAmount) {
+    if (inputResourceAddress === undefined || inputAmount == undefined) {
+      return 0
+    }
+
     let outputResourceAddress = this.otherResource(inputResourceAddress);
 
     let x = this.amountsMapping[inputResourceAddress];
@@ -31,7 +35,10 @@ class LiquidityPool {
   }
 
   calculateOutputLiquidityAmount(inputLiquidityResourceAddress, inputLiquidityAmount) {
-    console.log("Here")
+    if (inputLiquidityResourceAddress === undefined || inputLiquidityAmount == undefined) {
+      return 0
+    }
+    
     let outputLiquidityResourceAddress = this.otherResource(inputLiquidityResourceAddress);
 
     let dx = inputLiquidityAmount;
@@ -45,6 +52,10 @@ class LiquidityPool {
   }
 
   calculateInputAmount(outputResourceAddress, outputAmount) {
+    if (outputResourceAddress === undefined || outputAmount == undefined) {
+      return 0
+    }
+
     let inputResourceAddress = this.otherResource(outputResourceAddress);
 
     let x = this.amountsMapping[inputResourceAddress];
@@ -64,6 +75,10 @@ class LiquidityPool {
   }
 
   calculateInputLiquidityAmount(outputLiquidityResourceAddress, outputLiquidityAmount) {
+    if (outputLiquidityResourceAddress === undefined || outputLiquidityAmount == undefined) {
+      return 0
+    }
+
     let inputLiquidityResourceAddress = this.otherResource(outputLiquidityResourceAddress);
 
     let dx = outputLiquidityAmount;
