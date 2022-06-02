@@ -206,8 +206,8 @@ function App() {
     <AppContext.Provider value={state}>
       <div className="background d-flex flex-column h-100 ibm-sans">
         <div 
-          className='d-flex d-lg-none' 
-          style={{backgroundColor: '#000000D0', width: '100vw', height: '100vh'}}
+          className='d-flex d-lg-none position-absolute' 
+          style={{backgroundColor: '#000000D0', width: '100vw', height: '100vh', zIndex: 2, backdropFilter: 'blur(10px)', transition: '1s all'}}
         >
           <Container className='d-flex flex-column justify-content-center align-items-center'>
             <RiErrorWarningLine size={64}/>
