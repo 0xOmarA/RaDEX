@@ -20,8 +20,9 @@ import AccountBar from './components/account_bar';
 // Icon imports
 import { FaExchangeAlt, FaFaucet, FaGithub } from 'react-icons/fa';
 import { BsDropletHalf } from 'react-icons/bs';
-import { createContext, useEffect, useState } from 'react';
+import { RiErrorWarningLine } from 'react-icons/ri';
 
+import { createContext, useEffect, useState } from 'react';
 import Loading from './components/loading'
 
 import LiquidityPool from './library/liquidity_pool';
@@ -171,7 +172,7 @@ function App() {
       ...s,
       accountComponentAddress: address
     }));
-    api.getComponent({address: address}).then((response) => {
+    api.getComponent({ address: address }).then((response) => {
       console.log("response about account is", response);
       let ownedResourceAddresses = response.ownedResources.map(x => x.resourceAddress);
       Promise.all(
@@ -184,7 +185,7 @@ function App() {
         for (const resource of results) {
           mapping[resource.resourceAddress] = resource;
         }
-  
+
         setState((s) => ({
           ...s,
           ownedResourceInfoMapping: mapping
@@ -203,69 +204,79 @@ function App() {
 
   return (
     <AppContext.Provider value={state}>
-      <div className="background d-flex flex-column h-100">
-      <Loading isLoading={isLoading} />
-      {/* The Nav Bar */}
-      <Navbar variant="dark" className='pt-4'>
-        <Container>
-          <Navbar.Brand href="/">
-            <img src={logo} style={{ width: 120 }} />
-          </Navbar.Brand>
-          <Nav
-            className="px-2 py-2"
-            style={{ borderRadius: 25, backgroundColor: '#00000080' }}
-          >
-            <NavLink
-              to="swap"
-              className={`ibm-sans me-1 clickable-text ${path_name === "swap" || path_name === "" ? "active-clickable-text" : ""}`}
+      <div className="background d-flex flex-column h-100 ibm-sans">
+        <div 
+          className='d-flex d-lg-none' 
+          style={{backgroundColor: '#000000D0', width: '100vw', height: '100vh'}}
+        >
+          <Container className='d-flex flex-column justify-content-center align-items-center'>
+            <RiErrorWarningLine size={64}/>
+            <h2 className='mt-2'>RaDEX is only available on PC browsers</h2>
+            <p>At the current moment of time, RaDEX is not available for smartphone browsers. If you wish to try RaDEX out, please switch to your personal computer, install the PTE wallet, and give RaDEX a try.</p>
+          </Container>
+        </div>
+        <Loading isLoading={isLoading} />
+        {/* The Nav Bar */}
+        <Navbar variant="dark" className='pt-4'>
+          <Container>
+            <Navbar.Brand href="/">
+              <img src={logo} style={{ width: 120 }} />
+            </Navbar.Brand>
+            <Nav
+              className="px-2 py-2"
+              style={{ borderRadius: 25, backgroundColor: '#00000080' }}
             >
-              <FaExchangeAlt className='me-2' /> Swap
-            </NavLink>
-            <NavLink
-              to="liquidity"
-              className={`ibm-sans me-1 clickable-text ${path_name === "liquidity" ? "active-clickable-text" : ""}`}
-            >
-              <BsDropletHalf className='me-2' /> Liquidity
-            </NavLink>
-            <NavLink
-              to="faucet"
-              className={`ibm-sans me-1 clickable-text ${path_name === "faucet" ? "active-clickable-text" : ""}`}
-            >
-              <FaFaucet className='me-2' /> Faucet
-            </NavLink>
-            <a
-              href="https://github.com/0xOmarA/radex"
-              target="_blank"
-              rel="noopener noreferrer"
-              className='clickable-text'
-            >
-              <FaGithub className='me-2' /> Source Code
-            </a>
-          </Nav>
-          <Nav>
-            <AccountBar address={state.accountComponentAddress} />
-          </Nav>
+              <NavLink
+                to="swap"
+                className={`ibm-sans me-1 clickable-text ${path_name === "swap" || path_name === "" ? "active-clickable-text" : ""}`}
+              >
+                <FaExchangeAlt className='me-2' /> Swap
+              </NavLink>
+              <NavLink
+                to="liquidity"
+                className={`ibm-sans me-1 clickable-text ${path_name === "liquidity" ? "active-clickable-text" : ""}`}
+              >
+                <BsDropletHalf className='me-2' /> Liquidity
+              </NavLink>
+              <NavLink
+                to="faucet"
+                className={`ibm-sans me-1 clickable-text ${path_name === "faucet" ? "active-clickable-text" : ""}`}
+              >
+                <FaFaucet className='me-2' /> Faucet
+              </NavLink>
+              <a
+                href="https://github.com/0xOmarA/radex"
+                target="_blank"
+                rel="noopener noreferrer"
+                className='clickable-text'
+              >
+                <FaGithub className='me-2' /> Source Code
+              </a>
+            </Nav>
+            <Nav>
+              <AccountBar address={state.accountComponentAddress} />
+            </Nav>
+          </Container>
+        </Navbar>
+
+        {/* Main Page Body */}
+        <Container className='my-auto'>
+          <Routes>
+            <Route path="/" element={<Swap />} />
+
+            <Route path="swap" element={<Swap />} />
+            <Route path="liquidity" element={<Liquidity />} />
+            <Route path="faucet" element={<Faucet />} />
+
+            <Route path="*" element={<Error404 />} />
+          </Routes>
         </Container>
-      </Navbar>
 
-      {/* Main Page Body */}
-      <Container className='my-auto'>
-        <Routes>
-          <Route path="/" element={<Swap />} />
-
-          <Route path="swap" element={<Swap />} />
-          <Route path="liquidity" element={<Liquidity />} />
-          <Route path="faucet" element={<Faucet />} />
-
-          <Route path="*" element={<Error404 />} />
-        </Routes>
-      </Container>
-
-      {/* Page footer */}
-      <div className='pb-5'>
-        <PoweredByRadix />
+        {/* Page footer */}
+        <div className='pb-5'>
+          <PoweredByRadix />
+        </div>
       </div>
-    </div>
     </AppContext.Provider>
   );
 }
