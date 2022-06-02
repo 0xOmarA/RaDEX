@@ -1,17 +1,12 @@
 import CenterPanel from "../components/center_panel";
 
 import { getAccountAddress, signTransaction } from 'pte-browser-extension-sdk';
-import { DefaultApi, ManifestBuilder } from 'pte-sdk';
+import { ManifestBuilder } from 'pte-sdk';
 import { useEffect, useState, useContext } from "react";
 
 import { RADEX_COMPONENT_ADDRESS } from '../constants';
-import { addressStringToAddress } from "../utils";
 import SwapInput from "../components/swap_input";
-import Loading from '../components/loading';
 import { Button } from "react-bootstrap";
-
-import Resource from '../library/resource';
-import LiquidityPool from '../library/liquidity_pool';
 
 import SwapInOut from "../components/swap_in_out";
 
@@ -20,15 +15,12 @@ import { AppContext } from "../App";
 const Swap = () => {
   const state = useContext(AppContext);
 
-  const [pools, setPools] = useState([]);
   const [currentPool, setCurrentPool] = useState(undefined);
   
   const [resource1Amount, setResource1Amount] = useState(0);
   const [resource1, setResource1] = useState(undefined);
   const [resource2Amount, setResource2Amount] = useState(0);
   const [resource2, setResource2] = useState(undefined);
-
-  const [validResourcesOutInfoMapping, setValidResourcesOutInfoMapping] = useState({});
 
   const handleButtonOnClick = async (e) => {
     // Getting the address of the currently active account to deposit the tokens into
@@ -57,9 +49,6 @@ const Swap = () => {
     setResource2(_resource1);
   }
 
-  // Getting the available pools, their addresses, as well as the tokens that they hold
-  const api = new DefaultApi();
-
   // This runs whenever any of the resources change (whether input or output)
   useEffect(() => {
     // Ensure that all of the resources we depend upon are not undefined
@@ -79,7 +68,7 @@ const Swap = () => {
         setResource2Amount(outputAmount);
       }
     }
-  }, [resource1, resource2])
+  }, [resource1, resource2, state.liquidityPools, resource1Amount])
 
   return <CenterPanel className='w-100 position-relative'>
     <h4 style={{fontWeight: 900}}>Add Liquidity</h4>

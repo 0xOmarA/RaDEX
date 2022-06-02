@@ -2,7 +2,7 @@ import { FAUCET_COMPONENT_ADDRESS } from '../constants';
 import CenterPanel from '../components/center_panel';
 import { Button } from 'react-bootstrap';
 
-import { DefaultApi, ManifestBuilder } from 'pte-sdk';
+import { ManifestBuilder } from 'pte-sdk';
 import { getAccountAddress, signTransaction } from 'pte-browser-extension-sdk';
 
 const Faucet = () => {
